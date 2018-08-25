@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JAVS.Hypnos.Service", "JAVS.Hypnos.Service\JAVS.Hypnos.Service.csproj", "{62C7F959-BE31-4349-8DB1-141BE5546F31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JAVS.Hypnos.Pi.Detector", "JAVS.Hypnos.Pi.Detector\JAVS.Hypnos.Pi.Detector.csproj", "{AAE60A85-5F02-41E1-8E42-1B09BCBD1CB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JAVS.Hypnos.Pi.HDMIController", "JAVS.Hypnos.Pi.HDMIController\JAVS.Hypnos.Pi.HDMIController.csproj", "{F8B5A57E-0F91-4602-B071-7E04F76534C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JAVS.Hypnos.Pi.Core", "JAVS.Hypnos.Pi.Core\JAVS.Hypnos.Pi.Core.csproj", "{111D0B7B-0062-4ED3-A4F9-7E6D4395B652}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JAVS.Hypnos.Shared", "JAVS.Hypnos.Shared\JAVS.Hypnos.Shared.csproj", "{6FA92EF3-CF9F-493F-8737-6F06B801DF93}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{62C7F959-BE31-4349-8DB1-141BE5546F31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62C7F959-BE31-4349-8DB1-141BE5546F31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62C7F959-BE31-4349-8DB1-141BE5546F31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62C7F959-BE31-4349-8DB1-141BE5546F31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAE60A85-5F02-41E1-8E42-1B09BCBD1CB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAE60A85-5F02-41E1-8E42-1B09BCBD1CB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAE60A85-5F02-41E1-8E42-1B09BCBD1CB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAE60A85-5F02-41E1-8E42-1B09BCBD1CB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8B5A57E-0F91-4602-B071-7E04F76534C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8B5A57E-0F91-4602-B071-7E04F76534C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8B5A57E-0F91-4602-B071-7E04F76534C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8B5A57E-0F91-4602-B071-7E04F76534C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{111D0B7B-0062-4ED3-A4F9-7E6D4395B652}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{111D0B7B-0062-4ED3-A4F9-7E6D4395B652}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{111D0B7B-0062-4ED3-A4F9-7E6D4395B652}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{111D0B7B-0062-4ED3-A4F9-7E6D4395B652}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FA92EF3-CF9F-493F-8737-6F06B801DF93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FA92EF3-CF9F-493F-8737-6F06B801DF93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FA92EF3-CF9F-493F-8737-6F06B801DF93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FA92EF3-CF9F-493F-8737-6F06B801DF93}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8471F7C7-4CD6-4E93-9F09-7400AD381C7D}
+	EndGlobalSection
+EndGlobal

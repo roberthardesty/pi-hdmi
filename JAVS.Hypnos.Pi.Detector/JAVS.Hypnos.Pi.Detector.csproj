@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <RuntimeIdentifier>linux-arm</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SshDeployHost>192.168.1.76</SshDeployHost>
+      <SshDeployClean />
+      <SshDeployTargetPath>/share/JAVS.Hypnos.Pi.Detector</SshDeployTargetPath>
+      <SshDeployUsername>pi</SshDeployUsername>
+      <SshDeployPassword>purple55</SshDeployPassword>
+      <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenCvSharp3-AnyCPU" Version="3.4.1.20180319" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JAVS.Hypnos.Pi.Core\JAVS.Hypnos.Pi.Core.csproj" />
+    <ProjectReference Include="..\JAVS.Hypnos.Shared\JAVS.Hypnos.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\haarcascade_frontalface_alt.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\haarcascade_frontalface_alt2.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\haarcascade_frontalface_default.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
