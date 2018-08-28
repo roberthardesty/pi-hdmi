@@ -12,13 +12,13 @@ Vue.config.productionTip = false;
 
 
 Vue.use<SignalRConnectionOptions>(SignalRConnectionPlugin, {
-    urls:["/app", "/second", "/testHub"],
+    urls:["/app", "/faceDetection", "/testHub"],
     builderFactory(): HubConnectionBuilder {
         return new HubConnectionBuilder()
             .configureLogging(LogLevel.Information)
             .withHubProtocol(new MessagePackHubProtocol());
     },
-    baseURL: "http://localhost:47333"
+    baseURL: "http://localhost:5005"
 });
 //192.168.1.68
 

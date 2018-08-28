@@ -24,15 +24,22 @@ const SignalRConnectionPlugin: PluginObject<SignalRConnectionOptions> = {
             connections[stripSlash(url)] = options.builderFactory()
                 .withUrl(options.baseURL + url)
                 .build();
-        });
-
+            });
+        
+        Vue.prototype.$signalR = connections;
+            
         Vue.mixin({
             destroyed() {
                 console.log('Kill all connections');
-            }
+            },
+            methods: {
+                $ListenFor: <T>(hubName: string, topic: string, handler: (data: T) => void) => 
+                {
+                    connections[hubName].on(topic, handler);
+                }
+              }
         });
 
-        Vue.prototype.$signalR = connections;
 
         this.install.installed = true;
         console.log("SignalR plugin installed...");

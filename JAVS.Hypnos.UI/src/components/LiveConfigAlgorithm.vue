@@ -3,11 +3,11 @@
     <v-slide-y-transition mode="out-in">
         <v-card flat color="transparent">
             <v-card-title>
-                <h3>
                     Facial Algorithm Configuration (Live)
-                </h3>
             </v-card-title>
-    
+            <v-alert :value="isSpectator" type="warning"> Spectator </v-alert>
+            <v-alert :value="isControl" type="info"> Controller </v-alert>
+            <v-card color="transparent" flat height="150"></v-card>
             <v-card-text class="pt-0">
             <v-slider
                 v-model="sensitivity"
@@ -16,6 +16,7 @@
                 max="10"
                 thumb-label="always"
                 ticks
+                :readonly="isSpectator"
             ></v-slider>
             </v-card-text>
 
@@ -26,17 +27,34 @@
                 label="Face Size (distance)"
                 thumb-label="always"
                 ticks
+                :readonly="isSpectator"
             ></v-slider>
             </v-card-text>
-
         </v-card>
     </v-slide-y-transition>
+        <v-snackbar
+          v-model="faceAlert"
+          :multi-line="true"
+          :timeout="2000"
+        >
+          {{ faceDetectionStats.IsZeroFaceAlert ? "Face Lost" : "Found a Face!" }}
+          <v-btn
+            dark
+            flat
+            @click="faceAlert = false"
+          >
+            Close
+          </v-btn>
+        </v-snackbar>
   </v-container>
 </template>
 
 <script lang="ts">
 import Component from 'vue-class-component';
 import Vue from 'vue';
+import HubNames from '../HubNames';
+import { FaceDetectionStats, ClientGroupStats, SignalRServerResponse, JoinGroupRequest } from '@/models';
+
 
 @Component({
   props: {
@@ -45,9 +63,27 @@ import Vue from 'vue';
 })
 export default class LiveConfigAlgorithm extends Vue
 {
-    public size: number = 30;
-    public sensitivity: number = 5
+    public CONTROL_GROUP: string = "CONTROL_GROUP";
+    public SPECTATOR_GROUP: string = "SPECTATOR_GROUP";
+    public DETECTOR_GROUP: string = "DETECTOR_GROUP";
 
+    public size: number = 30;
+    public sensitivity: number = 5;
+    public faceAlert: boolean = false;
+    public clientGroupStats: ClientGroupStats = 
+    {
+      GroupName: "",
+      ConnectedClientGroupCounts: {}
+    };
+    public faceDetectionStats: FaceDetectionStats = 
+    {
+      IsZeroFaceAlert: false,
+      FaceRectangles: []
+    };
+
+
+    public get isSpectator() { return this.clientGroupStats.GroupName == this.SPECTATOR_GROUP };
+    public get isControl() { return this.clientGroupStats.GroupName == this.CONTROL_GROUP };
     public get sensitivityRules()
     {
         return [
@@ -62,15 +98,36 @@ export default class LiveConfigAlgorithm extends Vue
         ]
     }
 
-    public created()
+    public updateFaceDetectionStats(stats: FaceDetectionStats)
     {
-      let conn = this.$signalR["testHub"];
-      conn.on("Listen", (message: string) => {
-        console.log(message);
-      });
+      this.faceDetectionStats = stats;
+      this.faceAlert = true;
+    }
 
-      Promise.all([conn.start()])
-            .catch(error => console.error(error));
+    public updateClientGroupStats(stats: ClientGroupStats)
+    {
+      this.clientGroupStats.ConnectedClientGroupCounts = stats.ConnectedClientGroupCounts;
+      if(stats.GroupName.length)
+        this.clientGroupStats.GroupName = stats.GroupName
+    }
+
+    public async created()
+    {
+      this.$ListenFor<FaceDetectionStats>(HubNames.FaceDetection, "FaceDetectionStats", this.updateFaceDetectionStats);
+
+      this.$ListenFor<ClientGroupStats>(HubNames.FaceDetection, "ClientGroupStats", this.updateClientGroupStats);
+
+      let joinRequest: JoinGroupRequest = 
+      {
+        IsDetector: false,
+        Password: 'Not in use'
+      };
+
+      let conn = this.$signalR[HubNames.FaceDetection];
+
+      await conn.start()
+
+      await conn.send("Join", joinRequest)
     }
 
 }
