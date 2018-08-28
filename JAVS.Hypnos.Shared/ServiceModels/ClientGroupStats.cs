@@ -4,7 +4,7 @@ using System.Text;
 
 namespace JAVS.Hypnos.Shared.ServiceModels
 {
-    public class ClientGroupStats: SignalRServerResponse
+    public class ClientGroupStats
     {
         public string GroupName { get; set; }
         public Dictionary<string, int> ConnectedClientGroupCounts { get; set; }

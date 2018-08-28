@@ -1,4 +1,5 @@
 ﻿using JAVS.Hypnos.Pi.HDMIController.Services;
+using JAVS.Hypnos.Shared.ServiceModels;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,13 +18,33 @@ namespace JAVS.Hypnos.Pi.HDMIController
                 cts.Cancel();
             };
 
-            TestService service = new TestService();
-            await service.Init();
-            service.Listen((words) =>
+            FaceDetectionService faceDetectionService = new FaceDetectionService();
+
+            await faceDetectionService.Init();
+
+            faceDetectionService.ListenFor<FaceDetectionStats>((stats) =>
             {
-                Console.WriteLine("Other: " + words);
+                Console.WriteLine("Face Change.");
+                string output = "";
+                if (stats.IsZeroFaceAlert)
+                    output = @"vcgencmd display_power 0".Bash();
+                else if (stats.FaceRectangles?.Count > 0)
+                    output = @"vcgencmd display_power 1".Bash();
+
+                Console.WriteLine(output);
+
+                //if (stats.IsZeroFaceAlert)
+                //    output = @"echo 'standby 0' | cec-client -s -d 1".Bash();
+                //else if(stats.FaceRectangles?.Count > 0)
+                //    output = @"echo 'standby 1' | cec-client -s -d 1".Bash();
             });
-            await service.Talk("Hi I'm your friendly neighborhood hdmi controller.");
+
+            await faceDetectionService.Join(new JoinGroupRequest()
+            {
+                IsHDMIController = true,
+                Password = "Not in use"
+            });
+
             while (!cts.IsCancellationRequested)
             {
             }

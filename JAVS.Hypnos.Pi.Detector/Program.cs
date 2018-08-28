@@ -46,19 +46,26 @@ namespace JAVS.Hypnos.Pi.Detector
 
         public static void RunFacialDetection(CancellationTokenSource cts, FaceDetectionService service)
         {
-            if (!File.Exists(@"./Data/haarcascade_frontalface_alt.xml"))
+            if (!File.Exists(@"/share/JAVS.Hypnos.Pi.Detector/Data/haarcascade_frontalface_alt.xml"))
                 return;
 
             Mat sourceImg = new Mat();
             DateTime lastFaceTime = DateTime.Now;
             bool wasSearchingForFace = true;
-            using (CascadeClassifier cascade = new CascadeClassifier(@"./Data/haarcascade_frontalface_alt.xml"))
-            //using (Window webCamWindow = new Window("webCamWindow"))
-            using (var capture = new VideoCapture(0))
+
+            VideoCapture captureInstance = new VideoCapture(0);
+            while (!captureInstance.IsOpened())
+            {
+                Console.WriteLine("Video Capture being reopened.");
+                captureInstance.Open(0);
+                Thread.Sleep(500);
+            }
+            using (CascadeClassifier cascade = new CascadeClassifier(@"/share/JAVS.Hypnos.Pi.Detector/Data/haarcascade_frontalface_alt.xml"))
+                //using (Window webCamWindow = new Window("webCamWindow"))
             {
                 while (!cts.IsCancellationRequested)
                 {
-                    capture.Read(sourceImg);
+                    captureInstance.Read(sourceImg);
                     if (sourceImg.Empty())
                         break;
 
@@ -101,17 +108,8 @@ namespace JAVS.Hypnos.Pi.Detector
                             });
                         wasSearchingForFace = true;
                     }
-
-                    //foreach (var faceRect in faces)
-                    //{
-                    //    Cv2.Rectangle(sourceImg, faceRect, new Scalar(255, 255, 0));
-                    //}
-
-                    //webCamWindow.Image = sourceImg;
-                    //Cv2.WaitKey(50);
                 }
             }
-
-        }
+        }        
     }
 }

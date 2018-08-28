@@ -8,17 +8,16 @@ using System.Threading.Tasks;
 
 namespace JAVS.Hypnos.Service.Hubs
 {
-    public class FaceDetectionHub: Hub, IFaceDetectionService, IFaceDetectionListener
+    public class FaceDetectionHub: Hub, IFaceDetectionService
     {
         private const string CONTROL_GROUP = "CONTROL_GROUP";
         private const string SPECTATOR_GROUP = "SPECTATOR_GROUP";
         private const string DETECTOR_GROUP = "DETECTOR_GROUP";
         
-        private Dictionary<string, string> _clientIDGroupNameHash;
+        private static Dictionary<string, string> _clientIDGroupNameHash = new Dictionary<string,string>();
 
         public FaceDetectionHub()
         {
-            _clientIDGroupNameHash = new Dictionary<string, string>();
         }
 
         public async override Task OnDisconnectedAsync(Exception exception)
@@ -51,11 +50,7 @@ namespace JAVS.Hypnos.Service.Hubs
 
         public async Task<SignalRServerResponse> PublishFaceDetectionStats(FaceDetectionStats stats)
         {
-            var consumerClientIDs = _clientIDGroupNameHash.Where(cg => cg.Value == CONTROL_GROUP || cg.Value == SPECTATOR_GROUP)
-                                                          .Select(cg => cg.Key)
-                                                          .ToList();
-
-            await Clients.Clients(consumerClientIDs).SendAsync(nameof(FaceDetectionStats), stats);
+            await Clients.Groups(new List<string>{SPECTATOR_GROUP, CONTROL_GROUP}).SendAsync(nameof(FaceDetectionStats), stats);
 
             return new SignalRServerResponse()
             {
@@ -68,21 +63,26 @@ namespace JAVS.Hypnos.Service.Hubs
             if(request.IsDetector)
                 await AddToDetectorGroup();
             else
-                await AddToConsumerGroup();
+                await AddToConsumerGroup(request.IsHDMIController);
             // Here we are selecting all the IDs that are currently in the ClientID - GroupName hash and putting them in a list
-            IReadOnlyList<string> joinedClients = _clientIDGroupNameHash.Select(cg => cg.Key).ToList();
+            IReadOnlyList<string> joinedClients = _clientIDGroupNameHash.Select(cg => cg.Key)
+                                                                        .Where(id => id != Context.ConnectionId)
+                                                                        .ToList();
             // build the counts of each group
-            ClientGroupStats clientGroupStats = BuildClientGroupStatsResponse();
+            ClientGroupStats otherGroupStats = BuildClientGroupStatsResponse();
+            // this one contains the group that was just joined
+            ClientGroupStats senderGroupStats = BuildClientGroupStatsResponse(true);
             // publish to all clients that have joined a group that there are new group stats.
-            await Clients.Clients(joinedClients).SendAsync(nameof(ClientGroupStats), clientGroupStats);
+            await Clients.Clients(joinedClients).SendAsync(nameof(ClientGroupStats), otherGroupStats);
+            await Clients.Caller.SendAsync(nameof(ClientGroupStats), senderGroupStats);
 
             return new SignalRServerResponse() { Success = true };
         }
 
-        private async Task AddToConsumerGroup()
+        private async Task AddToConsumerGroup(bool isHDMIController)
         {
             int controllerClients = _clientIDGroupNameHash.Where(cg => cg.Value == CONTROL_GROUP).Count();
-            if(controllerClients < 2) // Only allow two clients to control the detector at the same time
+            if(controllerClients < 2 && !isHDMIController) // Only allow two web clients to control the detector at the same time
             {
                 _clientIDGroupNameHash.Add(Context.ConnectionId, CONTROL_GROUP);
             }
@@ -99,21 +99,16 @@ namespace JAVS.Hypnos.Service.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, _clientIDGroupNameHash[Context.ConnectionId]);
         }
 
-        private ClientGroupStats BuildClientGroupStatsResponse()
+        private ClientGroupStats BuildClientGroupStatsResponse(bool forSender = false)
         {
              Dictionary<string, int> clientGroupCounts = _clientIDGroupNameHash.GroupBy(x => x.Value)
                                                                               .ToDictionary(x => x.Key, x => x.Count());
             return new ClientGroupStats()
             {
-                Success = true,
-                GroupName = _clientIDGroupNameHash[Context.ConnectionId],
+                GroupName = forSender ? _clientIDGroupNameHash[Context.ConnectionId] : "",
                 ConnectedClientGroupCounts = clientGroupCounts
             };
         }
 
-        public void ListenFor<T>(Action<T> handler)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

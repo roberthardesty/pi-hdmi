@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JAVS.Hypnos.Pi.Detector.Services
+namespace JAVS.Hypnos.Pi.HDMIController.Services
 {
-    public class FaceDetectionService : ServiceClient, IFaceDetectionService, IFaceDetectionListener
+    public class FaceDetectionService : ServiceClient, IFaceDetectionListener
     {
         private HubConnection _connection;
         public FaceDetectionService() : base(HubNames.FaceDetection)
@@ -21,7 +21,6 @@ namespace JAVS.Hypnos.Pi.Detector.Services
         public async Task Init()
         {
             _connection = GetHubConnection();
-            await _connection.StartAsync();
         }
 
         public void ListenFor<T>(Action<T> handler)
@@ -31,12 +30,9 @@ namespace JAVS.Hypnos.Pi.Detector.Services
 
         public async Task<SignalRServerResponse> Join(JoinGroupRequest request)
         {
-            return await MutableCallSameMethodOnTheHub<SignalRServerResponse>(_connection, new object[] { request });
-        }
+            await _connection.StartAsync();
 
-        public async Task<SignalRServerResponse> PublishFaceDetectionStats(FaceDetectionStats stats)
-        {
-            return await MutableCallSameMethodOnTheHub<SignalRServerResponse>(_connection, new object[] { stats });
+            return await MutableCallSameMethodOnTheHub<SignalRServerResponse>(_connection, new object[] { request });
         }
 
         public Task<SignalRServerResponse> UpdateFaceDetectionConfig()
@@ -44,4 +40,5 @@ namespace JAVS.Hypnos.Pi.Detector.Services
             throw new NotImplementedException();
         }
     }
+
 }
