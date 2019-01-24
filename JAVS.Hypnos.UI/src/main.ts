@@ -18,7 +18,7 @@ Vue.use<SignalRConnectionOptions>(SignalRConnectionPlugin, {
             .configureLogging(LogLevel.Information)
             .withHubProtocol(new MessagePackHubProtocol());
     },
-    baseURL: "http://localhost:5005"
+    baseURL: "http://192.168.1.68:5005"
 });
 //192.168.1.68
 

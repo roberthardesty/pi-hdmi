@@ -27,7 +27,7 @@ namespace JAVS.Hypnos.Service.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task<SignalRServerResponse> UpdateFaceDetectionConfig()
+        public async Task<SignalRServerResponse> UpdateFaceDetectionConfiguration(FaceDetectionConfiguration faceDetectionConfiguration)
         {
             if (_clientIDGroupNameHash[Context.ConnectionId] != CONTROL_GROUP)
                 return new SignalRServerResponse()
@@ -36,11 +36,9 @@ namespace JAVS.Hypnos.Service.Hubs
                     Error = new Exception("Nice try.")
                 };
 
-            var consumerClientIDs = _clientIDGroupNameHash.Where(cg => cg.Value == CONTROL_GROUP || cg.Value == SPECTATOR_GROUP || cg.Value == DETECTOR_GROUP)
-                                                          .Select(cg => cg.Key)
-                                                          .ToList();
+            var groupNames = new List<string>() { CONTROL_GROUP, SPECTATOR_GROUP, DETECTOR_GROUP };
 
-            await Clients.Clients(consumerClientIDs).SendAsync("");
+            await Clients.Groups(groupNames).SendAsync(nameof(FaceDetectionConfiguration), faceDetectionConfiguration);
 
             return new SignalRServerResponse()
             {

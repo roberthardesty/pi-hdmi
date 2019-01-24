@@ -1,6 +1,8 @@
-﻿using JAVS.Hypnos.Pi.HDMIController.Services;
+﻿using JAVS.Hypnos.Pi.Core;
+using JAVS.Hypnos.Pi.HDMIController.Services;
 using JAVS.Hypnos.Shared.ServiceModels;
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,6 +10,7 @@ namespace JAVS.Hypnos.Pi.HDMIController
 {
     class Program
     {
+        private static PiSettings _piSettings;
         static async Task Main(string[] args)
         {
             Console.WriteLine("Hello World!");
@@ -18,7 +21,15 @@ namespace JAVS.Hypnos.Pi.HDMIController
                 cts.Cancel();
             };
 
-            FaceDetectionService faceDetectionService = new FaceDetectionService();
+            string configurationFilePath;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                configurationFilePath = @"/share/JAVS.Hypnos.Pi.HDMIController/PiSettings.json";
+            else
+                configurationFilePath = @"./PiSettings.json";
+
+            _piSettings = await JSONFile.LoadAsync<PiSettings>(configurationFilePath);
+
+            FaceDetectionService faceDetectionService = new FaceDetectionService(_piSettings);
 
             await faceDetectionService.Init();
 
@@ -27,9 +38,14 @@ namespace JAVS.Hypnos.Pi.HDMIController
                 Console.WriteLine("Face Change.");
                 string output = "";
                 if (stats.IsZeroFaceAlert)
+                {
                     output = @"vcgencmd display_power 0".Bash();
+                }
                 else if (stats.FaceRectangles?.Count > 0)
-                    output = @"vcgencmd display_power 1".Bash();
+                {
+                    output = @"xset s reset";
+                    output += @"vcgencmd display_power 1".Bash();
+                }
 
                 Console.WriteLine(output);
 

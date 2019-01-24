@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <SshDeployHost>192.168.1.76</SshDeployHost>
+    <SshDeployHost>192.168.1.67</SshDeployHost>
       <SshDeployClean />
       <SshDeployTargetPath>/share/JAVS.Hypnos.Pi.Detector</SshDeployTargetPath>
       <SshDeployUsername>pi</SshDeployUsername>
-      <SshDeployPassword>purple55</SshDeployPassword>
+      <SshDeployPassword>raspberry</SshDeployPassword>
       <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 

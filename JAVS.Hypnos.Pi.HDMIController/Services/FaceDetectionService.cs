@@ -13,7 +13,7 @@ namespace JAVS.Hypnos.Pi.HDMIController.Services
     public class FaceDetectionService : ServiceClient, IFaceDetectionListener
     {
         private HubConnection _connection;
-        public FaceDetectionService() : base(HubNames.FaceDetection)
+        public FaceDetectionService(PiSettings piSettings) : base(HubNames.FaceDetection, piSettings)
         {
 
         }

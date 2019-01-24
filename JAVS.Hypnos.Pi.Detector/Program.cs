@@ -1,9 +1,11 @@
-﻿using JAVS.Hypnos.Pi.Detector.Services;
+﻿using JAVS.Hypnos.Pi.Core;
+using JAVS.Hypnos.Pi.Detector.Services;
 using JAVS.Hypnos.Shared.ServiceModels;
 using OpenCvSharp;
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,8 +14,19 @@ namespace JAVS.Hypnos.Pi.Detector
     class Program
     {
         private static ClientGroupStats _clientGroupStats;
+        private static PiSettings _piSettings;
+        private static FaceDetectionConfiguration _faceDetectionConfiguration;
+
         static async Task Main(string[] args)
         {
+            _faceDetectionConfiguration = new FaceDetectionConfiguration()
+            {
+                 ScaleFactor = 1.2,
+                MinimumNeighbors = 5,
+                MinimumFaceWidth = 20,
+                MinimumFaceHeight = 20,
+                FaceTimeoutInSeconds = 5
+            };
             Console.WriteLine("Hello World!");
             CancellationTokenSource cts = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, a) =>
@@ -22,7 +35,15 @@ namespace JAVS.Hypnos.Pi.Detector
                 cts.Cancel();
             };
 
-            FaceDetectionService faceDetectionService = new FaceDetectionService();
+            string configurationFilePath;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                configurationFilePath = @"/share/JAVS.Hypnos.Pi.Detector/PiSettings.json";
+            else
+                configurationFilePath = @"./PiSettings.json";
+
+            _piSettings = await JSONFile.LoadAsync<PiSettings>(configurationFilePath);
+
+            FaceDetectionService faceDetectionService = new FaceDetectionService(_piSettings);
 
             await faceDetectionService.Init();
 
@@ -33,6 +54,11 @@ namespace JAVS.Hypnos.Pi.Detector
                     Console.WriteLine($"{group.Key}: {group.Value} Clients Connected.");
                     _clientGroupStats = stats;
                 }
+            });
+
+            faceDetectionService.ListenFor<FaceDetectionConfiguration>((config) =>
+            {
+                _faceDetectionConfiguration = config;
             });
 
             await faceDetectionService.Join(new JoinGroupRequest()
@@ -46,8 +72,14 @@ namespace JAVS.Hypnos.Pi.Detector
 
         public static void RunFacialDetection(CancellationTokenSource cts, FaceDetectionService service)
         {
-            if (!File.Exists(@"/share/JAVS.Hypnos.Pi.Detector/Data/haarcascade_frontalface_alt.xml"))
+            string haarCascadeFile = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? _piSettings.LinuxPathToFaceHaarCascade
+                                                                            : _piSettings.DevPathToFaceHaarCascade;
+            Console.WriteLine("Path to cascade classifier: " + haarCascadeFile);
+            if (!File.Exists(haarCascadeFile))
+            {
+                Console.WriteLine("NO HAAR FILE FOUND");
                 return;
+            }
 
             Mat sourceImg = new Mat();
             DateTime lastFaceTime = DateTime.Now;
@@ -60,7 +92,7 @@ namespace JAVS.Hypnos.Pi.Detector
                 captureInstance.Open(0);
                 Thread.Sleep(500);
             }
-            using (CascadeClassifier cascade = new CascadeClassifier(@"/share/JAVS.Hypnos.Pi.Detector/Data/haarcascade_frontalface_alt.xml"))
+            using (CascadeClassifier cascade = new CascadeClassifier(haarCascadeFile))
                 //using (Window webCamWindow = new Window("webCamWindow"))
             {
                 while (!cts.IsCancellationRequested)
@@ -75,10 +107,10 @@ namespace JAVS.Hypnos.Pi.Detector
 
                     var faces = cascade.DetectMultiScale(
                         image: grayImage,
-                        scaleFactor: 1.2,
-                        minNeighbors: 7,
+                        scaleFactor: _faceDetectionConfiguration.ScaleFactor,
+                        minNeighbors: _faceDetectionConfiguration.MinimumNeighbors,
                         flags: HaarDetectionType.DoRoughSearch | HaarDetectionType.ScaleImage,
-                        minSize: new Size(20, 20)
+                        minSize: new Size(_faceDetectionConfiguration.MinimumFaceWidth, _faceDetectionConfiguration.MinimumFaceHeight)
                         );
 
                     if (faces.Length > 0)
@@ -99,7 +131,7 @@ namespace JAVS.Hypnos.Pi.Detector
                             wasSearchingForFace = false;
                         }
                     }
-                    else if (DateTime.Now - lastFaceTime >= TimeSpan.FromSeconds(5))
+                    else if (DateTime.Now - lastFaceTime >= TimeSpan.FromSeconds(_faceDetectionConfiguration.FaceTimeoutInSeconds))
                     {
                         if (!wasSearchingForFace)
                             service.PublishFaceDetectionStats(new FaceDetectionStats

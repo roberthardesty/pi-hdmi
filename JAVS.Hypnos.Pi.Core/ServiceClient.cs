@@ -15,14 +15,16 @@ namespace JAVS.Hypnos.Pi.Core
         #region Member Variables
 
         private readonly string _hubName;
+        private readonly PiSettings _piSettings;
 
         #endregion
 
         #region Constructors
 
-        protected ServiceClient(string hubName)
+        protected ServiceClient(string hubName, PiSettings piSettings)
         {
             _hubName = hubName;
+            _piSettings = piSettings;
         }
 
         #endregion
@@ -135,10 +137,10 @@ namespace JAVS.Hypnos.Pi.Core
         protected HubConnection GetHubConnection()
         {
             var hubConnection = new HubConnectionBuilder()
-                                                .WithUrl($"{PiConfiguration.DevSignalRAddress}/{_hubName}",
+                                                .WithUrl($"{_piSettings.SignalRAddress}/{_hubName}",
                                                     (options) =>
                                                     {
-                                                        options.AccessTokenProvider = () => Task.FromResult(PiConfiguration.DevSignalRAddress);
+                                                        options.AccessTokenProvider = () => Task.FromResult(_piSettings.SignalRAddress);
                                                     })
                                                 .Build();
             hubConnection.Closed -= ConnectionClosedHandler;

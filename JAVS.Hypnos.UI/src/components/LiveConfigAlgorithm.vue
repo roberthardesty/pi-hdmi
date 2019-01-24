@@ -34,8 +34,8 @@
     </v-slide-y-transition>
         <v-snackbar
           v-model="faceAlert"
-          :multi-line="true"
           :timeout="2000"
+          :vertical="true"
         >
           {{ faceDetectionStats.IsZeroFaceAlert ? "Face Lost" : "Found a Face!" }}
           <v-btn
@@ -53,7 +53,7 @@
 import Component from 'vue-class-component';
 import Vue from 'vue';
 import HubNames from '../HubNames';
-import { FaceDetectionStats, ClientGroupStats, SignalRServerResponse, JoinGroupRequest } from '@/models';
+import { FaceDetectionStats, ClientGroupStats, SignalRServerResponse, JoinGroupRequest, FaceDetectionConfiguration } from '@/models';
 
 
 @Component({
@@ -66,6 +66,15 @@ export default class LiveConfigAlgorithm extends Vue
     public CONTROL_GROUP: string = "CONTROL_GROUP";
     public SPECTATOR_GROUP: string = "SPECTATOR_GROUP";
     public DETECTOR_GROUP: string = "DETECTOR_GROUP";
+
+    public faceDetectionConfiguration: FaceDetectionConfiguration = 
+    {
+      MinimumFaceHeight: 30,
+      MinimumFaceWidth: 30,
+      MinimumNeighbors: 5,
+      FaceTimeoutInSeconds: 5,
+      ScaleFactor: 1.2
+    };
 
     public size: number = 30;
     public sensitivity: number = 5;
@@ -84,6 +93,7 @@ export default class LiveConfigAlgorithm extends Vue
 
     public get isSpectator() { return this.clientGroupStats.GroupName == this.SPECTATOR_GROUP };
     public get isControl() { return this.clientGroupStats.GroupName == this.CONTROL_GROUP };
+    
     public get sensitivityRules()
     {
         return [
@@ -116,6 +126,11 @@ export default class LiveConfigAlgorithm extends Vue
       this.$ListenFor<FaceDetectionStats>(HubNames.FaceDetection, "FaceDetectionStats", this.updateFaceDetectionStats);
 
       this.$ListenFor<ClientGroupStats>(HubNames.FaceDetection, "ClientGroupStats", this.updateClientGroupStats);
+
+      this.$ListenFor<FaceDetectionConfiguration>(HubNames.FaceDetection, "FaceDetectionConfiguration", (config: FaceDetectionConfiguration) => 
+      {
+        this.faceDetectionConfiguration = config;
+      }); 
 
       let joinRequest: JoinGroupRequest = 
       {
